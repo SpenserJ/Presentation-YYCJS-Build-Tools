@@ -26,6 +26,10 @@ var config = {
         exclude: /(node_modules)/,
         loaders: ['html', 'jade-html'],
       },
+      {
+        test: /\.css$/,
+        loaders: ['style', 'css'],
+      }
     ],
   },
   devtool: 'eval-source-map',
