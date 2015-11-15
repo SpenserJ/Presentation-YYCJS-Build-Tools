@@ -3,7 +3,7 @@ section
   h3 Because the computer can do it much faster
 
 section
-  h1 What can it do?
+  h2 What can it do?
   ul
     li Compile SASS/SCSS/LESS to CSS
     li Transform ES2015 and beyond into well-supported JS
@@ -13,11 +13,11 @@ section
     li Live-reload the browser when you change something
 
 section
-  h1 Slide decks too!
+  h2 Slide decks too!
   p This slide deck was built with reveal.js and Webpack, and every time I changed a file, it showed up in the browser a split-second later.
 
 section
-  h1 Available Tools
+  h2 Available Tools
   p There are plenty of good tools to choose from, each with different goals.
   ul
     li Gulp - Use code to manage your tasks and chain your build together.
@@ -27,7 +27,7 @@ section
     li And many others
 
 section
-  h1 What I use
+  h2 What I use
   p I typically start out with a Gulp configuration, and can put one together in a few minutes with the abundance of modules that exist for it.
   pre
     code(class="javascript").
@@ -53,3 +53,100 @@ section
           .pipe(sourcemaps.write('.'))
           .pipe(gulp.dest('./public_html/app.js'));
       });
+
+section
+  h2 Gulp Hot-Load
+  p If I'm working on the frontend, live-reloading makes the process much easier, but adds to the complexity.
+  p BrowserSync is my preferred way of quickly adding in CSS hot-reloading, and refreshing the browser when the JS changes.
+  pre
+    code(class="javascript").
+      // ...
+      var browserSync = require('browser-sync').create();
+
+      gulp.task('browser-sync', function () {
+        browserSync.init({
+          proxy: 'localhost:8080',
+        });
+
+        gulp.watch(['public_html/*.html', 'public_html/*.js']).on('change', browserSync.reload);
+      });
+
+      gulp.task('sass', function () {
+        // ...
+          .pipe(gulp.dest('./public_html/'))
+          .pipe(browserSync.stream());
+      });
+
+      // ...
+
+section
+  h2 Gulp Falls Short
+  p Gulp is great for running build tasks and creating production builds of assets, but the gulpfile grows significantly more complex when you add in development tooling.
+  p Focus your gulp on running build tasks, and make your code handle hot-reloading and bundling itself.
+
+section
+  h2 Webpack to the rescue!
+  p When I build out a frontend, Webpack is quickly becoming my tool of choice. Hot-loading stylesheets, javascript, and even images keeps my hands on the keyboard. All I have to do is hit save and look at the browser to see my website come to life.
+  p The best part is, the only config I write is to tell Webpack how to load SCSS or ES6 javascript, and then the rest is requiring what I want, when I want it.
+
+section
+  h2 Configuring Webpack
+  pre
+    code(style="javascript").
+      var webpack = require('webpack');
+
+      module.exports = {
+        entry: [
+          './app/index.js',
+          'webpack-dev-server/client',
+          'webpack/hot/dev-server',
+        ],
+        output: {
+          path: './public_html',
+          filename: 'app.js',
+        },
+        plugins: [
+          new webpack.HotModuleReplacementPlugin(),
+        ],
+        module: {
+          loaders:[
+            {
+              test: /\.js$/,
+              exclude: /(node_modules)/,
+              loaders: ['babel'],
+            },
+            {
+              test: /\.scss$/,
+              exclude: /(node_modules)/,
+              loaders: ['style', 'css', 'sass'],
+            },
+          ],
+        },
+        devtool: 'eval-source-map',
+      };
+
+section
+  h2 Just require what you need!
+  pre
+    code(class="javascript").
+      'use strict';
+
+      import slides from './slides.jade';
+
+      import reveal from 'reveal';
+      import 'reveal/index.css';
+      import 'reveal/theme/night.css';
+
+      import hljs from 'highlight.js';
+      import 'highlight.js/styles/tomorrow-night.css';
+
+      document.querySelector('.reveal .slides').innerHTML = slides;
+
+      reveal.initialize({
+          controls: true,
+          progress: true,
+          history: true,
+          transition: 'linear',
+      });
+
+      hljs.initHighlightingOnLoad();
