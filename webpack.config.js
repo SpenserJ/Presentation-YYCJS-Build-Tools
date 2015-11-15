@@ -1,18 +1,29 @@
 'use strict';
+
+var path = require('path');
 var webpack = require('webpack');
 
+var deps = [
+  'reveal',
+  'highlight.js',
+];
+
 var config = {
-  entry: [
-    './presentation/entry.js',
-    'webpack/hot/dev-server',
-    'webpack-dev-server/client',
-  ],
+  entry: {
+    app: [
+      './presentation/entry.js',
+      'webpack/hot/dev-server',
+      'webpack-dev-server/client',
+    ],
+    vendor: [],
+  },
   output: {
     path: __dirname + '/dist',
     filename: 'presentation.js',
   },
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
+    new webpack.optimize.CommonsChunkPlugin('vendor', 'vendor.js'),
   ],
   module: {
     loaders: [
@@ -34,5 +45,10 @@ var config = {
   },
   devtool: 'eval-source-map',
 };
+
+deps.forEach(function (dep) {
+  var depName = dep.split(path.sep)[0];
+  config.entry.vendor.push(depName);
+});
 
 module.exports = config;
