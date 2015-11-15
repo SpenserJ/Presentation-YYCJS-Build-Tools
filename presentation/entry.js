@@ -1,9 +1,13 @@
 'use strict';
 
 import slides from './slides.jade';
+
 import reveal from 'reveal';
 require('reveal/index.css');
 require('reveal/theme/night.css');
+
+import hljs from 'highlight.js';
+require('highlight.js/styles/tomorrow-night.css');
 
 document.querySelector('.reveal .slides').innerHTML = slides;
 
@@ -15,3 +19,5 @@ reveal.initialize({
     theme: 'night', // available themes are in /css/theme
     transition: 'linear' // default/cube/page/concave/zoom/linear/fade/none
 });
+
+hljs.initHighlightingOnLoad();

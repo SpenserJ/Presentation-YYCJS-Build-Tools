@@ -16,3 +16,40 @@ section
   h1 Slide decks too!
   p This slide deck was built with reveal.js and Webpack, and every time I changed a file, it showed up in the browser a split-second later.
 
+section
+  h1 Available Tools
+  p There are plenty of good tools to choose from, each with different goals.
+  ul
+    li Gulp - Use code to manage your tasks and chain your build together.
+    li Grunt - Configuration may be much easier for designers to jump into.
+    li Brunch - Focused on building assets, instead of running tasks.
+    li Webpack - Rapid development and hot-reloading of changes.
+    li And many others
+
+section
+  h1 What I use
+  p I typically start out with a Gulp configuration, and can put one together in a few minutes with the abundance of modules that exist for it.
+  pre
+    code(class="javascript").
+      var gulp = require('gulp')
+        , sourcemaps = require('gulp-sourcemaps')
+        , uglify = require('gulp-uglify')
+        , sass = require('gulp-sass');
+
+      gulp.task('default', ['sass', 'js']);
+
+      gulp.task('sass', function () {
+        return gulp.src('./scss/style.scss')
+          .pipe(sourcemaps.init())
+          .pipe(sass({ outputStyle: 'compressed' }).on('error', sass.logError))
+          .pipe(sourcemaps.write('.'))
+          .pipe(gulp.dest('./public_html/'));
+      });
+
+      gulp.task('js', function () {
+        return gulp.src('./app/index.js')
+          .pipe(sourcemaps.init())
+          .pipe(uglify())
+          .pipe(sourcemaps.write('.'))
+          .pipe(gulp.dest('./public_html/app.js'));
+      });
