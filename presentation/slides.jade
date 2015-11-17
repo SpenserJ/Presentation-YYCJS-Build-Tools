@@ -11,6 +11,7 @@ section
     li Upload assets to S3
     li Remove development code in production builds
     li Live-reload the browser when you change something
+    li Edit directly in the Web Inspector
 
 section
   h2 Slide decks too!
@@ -24,39 +25,80 @@ section
     li Grunt - Configuration may be much easier for designers to jump into.
     li Brunch - Focused on building assets, instead of running tasks.
     li Webpack - Rapid development and hot-reloading of changes.
+    li DevTools - Edit in the browser, and your code will change as well.
     li And many others
 
 section
-  h2 What I use
-  p I typically start out with a Gulp configuration, and can put one together in a few minutes with the abundance of modules that exist for it.
+  h2 Quick and easy in the browser
+  p DevTools already makes it easy to tweak your website, and with a <code>Workspace</code> and <code>file mapping</code>, changes are immediately saved back to your codebase. This is a great way of making quick changes to a static site, and it pairs extremely well with tools like Gulp. If you do SASS/SCSS/LESS compilation with Source Maps, it can even modify the original source for you.
+
+section
+  h2 Give it a shot!
+  p I used the Responsive configuration from <a href="http://www.initializr.com/" target="_blank">Initializr.com</a>, but this works with any stylesheet or Javascript file. To launch this example, start a quick server in the <code>example-devtools-workspace</code> folder.
+  pre
+    code(class="bash").
+      $ npm install -g http-server
+      $ cd example-devtools-workspace
+      $ http-server -p 8081
+  p Now go to <a href="http://localhost:8081/" target="_blank">http://localhost:8081/</a>.
+
+section
+  h2 Link your files and tweak away
+  ul
+    li Open DevTools
+    li Click the settings cog in the top right
+      ul
+        li Navigate to <code>Workspace</code>
+        li Click <code>Add Folder</code>
+        li Choose the <code>example-devtools-workspace</code> folder
+        li Grant DevTools access to the folder
+        li Close the Settings modal
+    li Click the <code>Sources</code> tab
+      ul
+        li Open <code>localhost:8081/css/main.css</code>
+        li Right click the code and click <code>Map to File System Resource...</code>
+        li Click <code>main.css</code> and click <code>OK</code> to restart the inspector
+    li Edit the CSS, and refresh the page.
+
+section
+  h2 What's that? Vim is better than DevTools, you say?
+  p I completely agree! Your editor is your best friend, and tweaking in there may be more comfortable.
+  p How do you feel about turning
+  p
+    code Code->Save->Alt-Tab->Compile->Alt-Tab->Refresh->Repeat
+  p into
+  p
+    code Code->Save->Look
+
+section
+  h2 Automate your workflow
+  p With a few dozen lines of code, and a few Gulp modules (there are thousands to do your bidding), it takes just minutes to automate the compilation of code.
   pre
     code(class="javascript").
       var gulp = require('gulp')
-        , sourcemaps = require('gulp-sourcemaps')
         , uglify = require('gulp-uglify')
+        , concat = require('gulp-concat')
         , sass = require('gulp-sass');
 
-      gulp.task('default', ['sass', 'js']);
-
+      gulp.task('default', ['sass', 'js'], function () {
+        gulp.watch('./scss/**/*.scss', 'sass');
+        gulp.watch('./app/**/*.js', 'js');
+      });
       gulp.task('sass', function () {
         return gulp.src('./scss/style.scss')
-          .pipe(sourcemaps.init())
-          .pipe(sass({ outputStyle: 'compressed' }).on('error', sass.logError))
-          .pipe(sourcemaps.write('.'))
+          .pipe(sass())
           .pipe(gulp.dest('./public_html/'));
       });
-
       gulp.task('js', function () {
-        return gulp.src('./app/index.js')
-          .pipe(sourcemaps.init())
+        return gulp.src(['./app/index.js', './app/menu.js', './app/chat.js'])
           .pipe(uglify())
-          .pipe(sourcemaps.write('.'))
-          .pipe(gulp.dest('./public_html/app.js'));
+          .pipe(concat('app.js'))
+          .pipe(gulp.dest('./public_html/'));
       });
 
 section
   h2 Gulp Hot-Load
-  p If I'm working on the frontend, live-reloading makes the process much easier, but adds to the complexity.
+  p Automatically updating the browser when files change simplifies the development flow, but adds to the complexity of your build tools.
   p BrowserSync is my preferred way of quickly adding in CSS hot-reloading, and refreshing the browser when the JS changes.
   pre
     code(class="javascript").
@@ -80,14 +122,14 @@ section
       // ...
 
 section
-  h2 Gulp Falls Short
-  p Gulp is great for running build tasks and creating production builds of assets, but the gulpfile grows significantly more complex when you add in development tooling.
-  p Focus your gulp on running build tasks, and make your code handle hot-reloading and bundling itself.
+  h2 Close, but not perfect
+  p Gulp is great for running build tasks and creating production builds of assets, but the gulpfile grows significantly more complex as you add in additional development tooling.
+  p Perhaps there is a better tool for reflecting changes in the browser?
 
 section
   h2 Webpack to the rescue!
-  p When I build out a frontend, Webpack is quickly becoming my tool of choice. Hot-loading stylesheets, javascript, and even images keeps my hands on the keyboard. All I have to do is hit save and look at the browser to see my website come to life.
-  p The best part is, the only config I write is to tell Webpack how to load SCSS or ES6 javascript, and then the rest is requiring what I want, when I want it.
+  p When I build out a frontend, Webpack is quickly becoming my tool of choice. Hot-loading stylesheets, javascript, and even images keeps my hands on the keyboard. All I have to do is hit save and look at the browser to see changes jump into action.
+  p Better yet, the config rarely changes and the rest is done by requiring dependencies, when and where they need to be.
 
 section
   h2 Configuring Webpack
@@ -98,50 +140,32 @@ section
       module.exports = {
         entry: [
           './app/index.js',
-          'webpack-dev-server/client',
+          'webpack-dev-server/client?http://localhost:8080',
           'webpack/hot/dev-server',
         ],
         output: {
           path: './public_html',
           filename: 'app.js',
         },
-        plugins: [
-          new webpack.HotModuleReplacementPlugin(),
-        ],
+        plugins: [ new webpack.HotModuleReplacementPlugin() ],
         module: {
           loaders:[
-            {
-              test: /\.js$/,
-              exclude: /(node_modules)/,
-              loaders: ['babel'],
-            },
-            {
-              test: /\.scss$/,
-              exclude: /(node_modules)/,
-              loaders: ['style', 'css', 'sass'],
-            },
+            { test: /\.js$/, loaders: ['babel'] },
+            { test: /\.scss$/, loaders: ['style', 'css', 'sass'] },
           ],
         },
-        devtool: 'eval-source-map',
       };
 
 section
   h2 Just require what you need!
   pre
     code(class="javascript").
-      'use strict';
-
       import slides from './slides.jade';
+      document.querySelector('.reveal .slides').innerHTML = slides;
 
       import reveal from 'reveal';
       import 'reveal/index.css';
       import 'reveal/theme/night.css';
-
-      import hljs from 'highlight.js';
-      import 'highlight.js/styles/tomorrow-night.css';
-
-      document.querySelector('.reveal .slides').innerHTML = slides;
-
       reveal.initialize({
           controls: true,
           progress: true,
@@ -149,4 +173,18 @@ section
           transition: 'linear',
       });
 
+      import hljs from 'highlight.js';
+      import 'highlight.js/styles/tomorrow-night.css';
       hljs.initHighlightingOnLoad();
+
+section
+  h2 Time to edit some code
+  pre
+    code(class="bash").
+      $ cd example-webpack
+      $ npm install
+      $ npm run hot-dev-server
+
+      # In another terminal:
+      $ npm run start-dev
+  p Now open up <a href="http://localhost:8080/" target="_blank">http://localhost:8080/</a> and edit some files in <code>app</code>.
