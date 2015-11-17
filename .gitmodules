@@ -1,0 +1,3 @@
+[submodule "example-webpack"]
+	path = example-webpack
+	url = https://github.com/webpack/react-starter.git
